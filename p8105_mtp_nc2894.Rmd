@@ -106,6 +106,6 @@ weight_time_per_dog =
     x = "Time",
     y = "Weights(lbs)")
   
-two_panelplot = weight_dist_per_dog + weight_time_per_dog
+weight_dist_per_dog + weight_time_per_dog
 ```
 
