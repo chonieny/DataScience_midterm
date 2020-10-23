@@ -11,14 +11,14 @@ library(readxl)
 ```
 
 # Problem 1 
-### (a) Tidy raw dataset
+### (1) Tidy raw dataset
 ```{r}
 dogs_raw = read_excel("./data/dogweights.xlsx", range = "B2:G207", sheet = "Sheet1", col_types = c("date", "text", "text", "text", "text", "text")) %>%
   rename(notes = ...6) %>%
   janitor::clean_names()
 ```
 
-### (b) Produce the first dataframe
+### (2) Produce the first tidy dataframe
 ```{r}
 dogs_df1 = dogs_raw %>%
   drop_na(date) %>%
@@ -38,7 +38,7 @@ dogs_df1 = dogs_raw %>%
 ```
 
 
-### (c) Produce the second dataframe
+### (3) Produce the second tidy dataframe that contains only the notes and dates
 ```{r}
 dogs_df2 = dogs_raw %>%
   drop_na(date) %>%
@@ -52,8 +52,22 @@ dogs_df2 = dogs_raw %>%
 
 
 # Problem 2
-
+### (1) Identify the number of unique dates in the dataset
 ```{r}
 unique_days_df = length(unique(dogs_raw$date))
 ```
 There are `r unique_days_df` unique dates in the tidy dataset containing weights.
+
+
+### (2) Make a well-formatted table that shows the number of observations per dog, and their average weight and standard deviation
+```{r}
+obsverations_per_dog_df = 
+  dogs_df1 %>%
+  group_by(dog_name) %>%
+  summarize(
+    n_obs = n(),
+    mean_weights = mean(weight_in_lbs, na.rm = TRUE),
+    sd_weights = sd(weight_in_lbs,na.rm = TRUE)
+  )
+```
+
