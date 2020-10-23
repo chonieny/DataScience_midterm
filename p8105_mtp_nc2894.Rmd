@@ -50,3 +50,10 @@ dogs_df2 = dogs_raw %>%
   select(-c(raisin:std))
 ```
 
+
+# Problem 2
+
+```{r}
+unique_days_df = length(unique(dogs_raw$date))
+```
+There are `r unique_days_df` unique dates in the tidy dataset containing weights.
