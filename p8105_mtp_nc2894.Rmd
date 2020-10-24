@@ -130,7 +130,8 @@ dogs_weight_time =
   labs(
     title = "Each dog's weight over time",
     x = "Date",
-    y = "Weights(lbs)")
+    y = "Weights(lbs)") +
+   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
   
 dogs_weight_dist + dogs_weight_time
 ```
