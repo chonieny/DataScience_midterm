@@ -32,6 +32,10 @@ dogs_df1 =
   mutate(simone = as.numeric(simonelbs) + as.numeric(simoneoz)/16) %>%
   separate(gagne, into = c("gagnelbs", "gagneoz"), sep = " " ) %>%
   mutate(gagne = as.numeric(gagnelbs) + as.numeric(gagneoz)/16) %>%
+  mutate(
+    year = as.factor(year),
+    month = as.factor(month),
+    day = as.factor(day)) %>%
   select(-c(raisinlbs:notes))
 ```
 
@@ -69,20 +73,23 @@ unique_days =
 There are `r unique_days` unique dates in the tidy dataset.
 
 
-### (2) Make a well-formatted table that shows the number of observations per dog, and their average weight and standard deviation
+### (2) Make a well-formatted table that shows the number of observations per dog, their average weight, and standard deviation
 ```{r}
-dogs_table = data.frame(t(colSums(!is.na(dogs_df1)))) %>%
+dogs_table = 
+  data.frame(t(colSums(!is.na(dogs_df1)))) %>%
   select(raisin, simone, gagne)
 rownames(dogs_table) = c("observations")
 
-dogs_weight_mean = dogs_df1 %>%
+dogs_weight_mean = 
+  dogs_df1 %>%
   summarize(
     raisin = mean(raisin, na.rm = TRUE),
     simone = mean(simone, na.rm = TRUE),
     gagne = mean(gagne, na.rm = TRUE))
 rownames(dogs_weight_mean) = c("mean")
 
-dogs_weight_sd = dogs_df1 %>%
+dogs_weight_sd = 
+  dogs_df1 %>%
   summarize(
     raisin = sd(raisin, na.rm = TRUE),
     simone = sd(simone, na.rm = TRUE),
