@@ -12,11 +12,10 @@ library(patchwork)
 
 # Problem 1 
 
-The raw dataset used in this project contains weight data of three pet dogs, Raisin, Simone, and Gagne, per date which ranges from 8/12/2018 to 9/7/2020. Each dog has two weight entries- one of which is the weight in pounds and the other is the weight in ounces. The raw dataset also contains weight data of a standard object that was weighed occasionally to ensure accuracy over time. In addition, occasional notes are included in the raw dataset as well, which often mention the time periods the dogs spent in a kennel.
+The raw dataset contains weight data of three dogs, Raisin, Simone, and Gagne, per date ranging from 8/12/2018 to 9/7/2020. Each dog has two weight entries- weight in pounds and in ounces. The raw dataset also contains notes and weight data of a standard object that was weighed to ensure accuracy over time. 
 
-The goals of this report is to examine the distribution of weights for each dog and the progression of each dog's weight over time. 
+The goals of this report are to examine the distribution of weights for each dog and the progression of each dog’s weight over time.
 
-(the different locations, such as kennels, the pet dogs were in during certain time periods). 
 
 ### (1) Tidy raw dataset
 ```{r}
@@ -27,13 +26,13 @@ dogs_raw =
   janitor::clean_names()
 ```
 
-### (2) Produce the first tidy dataframe
+### (2) Produce first tidy dataframe
 ```{r}
 dogs_df1 = 
   dogs_raw %>%
   drop_na(date) %>%
   separate(date, into = c("year", "month", "day"), sep = "-") %>%
-  mutate(raisin = recode(raisin, '1810' = '18 10')) %>%
+  mutate(raisin = recode(raisin, '1810' = '18 10', '1803' = '18 03', '7 15' = '17 15')) %>%
   separate(raisin, into = c("raisinlbs", "raisinoz"), sep = " ") %>%
   mutate(raisin = as.numeric(raisinlbs) + as.numeric(raisinoz)/16) %>%
   separate(simone, into = c("simonelbs", "simoneoz"), sep = " " ) %>%
@@ -47,24 +46,15 @@ dogs_df1 =
   select(-c(raisinlbs:notes))
 ```
 
-The raw dataset had some organization issues, so some steps were taken to tidy and clean the data.
+One of the issues of the imported raw dataset was the incorrect date formatting. 
+So, I used 'col_types' to fix the issue.
+Additionally, the columns were named incorrectly in the imported raw dataset. 
+Thus, I set the import range of the raw data excel sheet to exclude the first row, and then renamed one column, and used 'clean_names()'.
+Then, I used 'mutate' and 'recode' to fix errors in three of Raisin's weight entries.
+I then used 'separate' and 'mutate' to combine the two weight data into one weight data per dog.
+Finally, I produced the first tidy dataframe by using 'select' to leave out unnecessary columns. 
 
-One of the issues was that the date formatting in the imported raw data was incorrect. 
-So, I used the 'col_types' function to specify which types of data each column in the imported dataset should have.
-Another issue was that the columns were named as 'Weight (Lbs Oz)', '...2', '...3', '...4', '...5', and 'notes' in the imported raw dataset. 
-In order to fix this problem, I set the import range of the raw data excel sheet so that it excludes the first row in the raw dataset, and then renamed one of the columns to indicate 'notes', and used the 'clean_names()' function to clean the variable names.
-
-After the initial tidying of the data, I noticed that the weight entries for Raisin on 2018-10-22 did not have a space between the pounds entry and the ounce entry. So, I used the 'mutate' and 'recode' functions to create a spacing between these two entries. 
-Then, I used the 'separate' function to create separate columns for each weight entry per dog, which resulted in two columns per dog in the dataset.
-I then used the 'mutate' function to create a new column for each dog that combines the two weight data per dog to one weight data per dog.   
-
-After doing so, I produced the first tidy dataframe by using the 'select' function to leave out unnecessary columns, 
-such as 'std', 'notes', and all the two columns per dog. 
-The 'std' column was considered unnecessary because its mere purpose was to indicate the accuracy of the dedicated scale over time, and the consistent data in this column proved so. 
-The 'notes' column was also left out because the first tidy dataframe was intended not to include the notes. 
-
-
-### (3) Produce the second tidy dataframe that contains only the notes and dates
+### (3) Produce second tidy dataframe
 ```{r}
 dogs_df2 = 
   dogs_raw %>%
@@ -78,7 +68,7 @@ dogs_df2 =
 ```
 
 
-### (4) Export both dataframes as CSVs
+### (4) Export both dataframes 
 ```{r}
 write_csv(dogs_df1, "./data/problem1_dataframe1.csv")
 write_csv(dogs_df2, "./data/problem1_dataframe2.csv")
@@ -94,10 +84,12 @@ unique_days =
   summarize(n_obs = n()) %>%
   nrow()
 ```
-There are `r unique_days` unique dates in the tidy dataset.
+There are `r unique_days` unique dates in the dataset.
+Raisin's maximum weight was `r max(dogs_df1$raisin, na.rm = TRUE)` lbs and minimum weight was `r min(dogs_df1$raisin, na.rm = TRUE)` lbs. 
+In addition, Simone's maximum and minimum weights were `r max(dogs_df1$simone, na.rm = TRUE)` lbs and `r min(dogs_df1$simone, na.rm = TRUE)` lbs, respectively. 
+Lastly, Gagne's maximum and minimum weights were `r max(dogs_df1$gagne, na.rm = TRUE)` lbs and `r min(dogs_df1$gagne, na.rm = TRUE)` lbs, respectively. 
 
-
-### (2) Make a well-formatted table that shows the number of observations per dog, their average weight, and standard deviation
+### (2) Make a table 
 ```{r}
 dogs_table = 
   data.frame(t(colSums(!is.na(dogs_df1)))) %>%
@@ -126,13 +118,13 @@ dogs_table = do.call("rbind", list(dogs_table, dogs_weight_mean, dogs_weight_sd)
 dogs_table
 ```
 
-
 # Problem 3
 ### Create a two-panel plot 
 ```{r}
 dogs_df3 = 
   dogs_raw %>%
   drop_na(date) %>%
+  mutate(raisin = recode(raisin, '1810' = '18 10', '1803' = '18 03', '7 15' = '17 15')) %>%
   pivot_longer(
     raisin:gagne, 
     names_to = "dog_name",
@@ -146,12 +138,13 @@ dogs_df3 =
 dogs_weight_dist = 
   dogs_df3 %>%
   select(-date) %>%
-  ggplot(aes(x = weight_in_lbs, fill = dog_name)) + 
-  geom_density(alpha = 0.3, adjust = 0.5) +
+  ggplot(aes(x = dog_name, y = weight_in_lbs, fill = dog_name)) + 
+  geom_violin(alpha = 0.5) +
+  stat_summary() +
   labs(
-    title = "Distribution of weights for each dog",
-    x = "Weight(lbs)", 
-    y = "Density")
+    title = "Distribution of weights per dog",
+    x = "dog name", 
+    y = "weights(lbs)")
 
 #Plot of each dog's weight over time
 dogs_weight_time =
@@ -160,10 +153,26 @@ dogs_weight_time =
   geom_point(alpha = 0.3) +
   labs(
     title = "Each dog's weight over time",
-    x = "Date",
-    y = "Weights(lbs)") +
+    x = "date",
+    y = "weights(lbs)") +
    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
   
 dogs_weight_dist + dogs_weight_time
+```
+
+The left panel shows that the minimum and maximum weights of Raisin are much higher than any of the weights of Gagne and Simone. Raisin's weights show a right-skewed distribution with a mean around 18 lbs. 
+However, Gagne's weight distribution is left-skewed with a mean around 10 lbs. 
+Similarly, Simone's weight distribution also shows a mean around 10 lbs, but seems closer to approaching a normal distribution and has less of a spread than Gagne's weight distribution. 
+It is apparent that Gagne's minimum weight is lower than that of Simone while their maximum weights seem very similar.
+
+The right panel shows that there was a dramatic decrease in Raisin's weights from August 2018 to January 2019. 
+Then, Raisin's weights have stayed fairly consistent between January 2019 and March 2020 until they showed a more increasing trend from March to September 2020. 
+Simone's weights have stayed more consistent from August 2018 to September 2020. Although the weights seemed to slightly decrease from August 2018 to January 2019, from then on the weights stayed fairly consistent. 
+However, Gagne's weights showed a clear decreasing trend from August 2018 to September 2019. 
+The decrease in weights was more steep from around April 2019 to September 2019, most likely related to Gagne's imminent death.
+
+```{r}
+devtools::install_github("benmarwick/wordcountaddin", type = "source", dependencies = TRUE)
+wordcountaddin::text_stats("p8105_mtp_nc2894.Rmd")
 ```
 
