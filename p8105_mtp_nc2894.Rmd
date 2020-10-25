@@ -11,14 +11,21 @@ library(patchwork)
 ```
 
 # Problem 1 
+
+The raw dataset used in this project contains weight data of three pet dogs, Raisin, Simone, and Gagne, per date which ranges from 8/12/2018 to 9/7/2020. Each dog has two weight entries- one of which is the weight in pounds and the other is the weight in ounces. The raw dataset also contains weight data of a standard object that was weighed occasionally to ensure accuracy over time. In addition, occasional notes are included in the raw dataset as well, which often mention the time periods the dogs spent in a kennel.
+
+The goals of this report is to examine the distribution of weights for each dog and the progression of each dog's weight over time. 
+
+(the different locations, such as kennels, the pet dogs were in during certain time periods). 
+
 ### (1) Tidy raw dataset
 ```{r}
 dogs_raw = 
-  read_excel("./data/dogweights.xlsx", range = "B2:G207", col_types = c("date", "text", "text", "text", "text", "text")) %>%
+  read_excel("./data/dogweights.xlsx", range = "B2:G207", col_types = c("date", "text", "text", "text", "text",
+  "text")) %>%
   rename(notes = ...6) %>%
   janitor::clean_names()
 ```
-
 
 ### (2) Produce the first tidy dataframe
 ```{r}
@@ -26,6 +33,7 @@ dogs_df1 =
   dogs_raw %>%
   drop_na(date) %>%
   separate(date, into = c("year", "month", "day"), sep = "-") %>%
+  mutate(raisin = recode(raisin, '1810' = '18 10')) %>%
   separate(raisin, into = c("raisinlbs", "raisinoz"), sep = " ") %>%
   mutate(raisin = as.numeric(raisinlbs) + as.numeric(raisinoz)/16) %>%
   separate(simone, into = c("simonelbs", "simoneoz"), sep = " " ) %>%
@@ -38,6 +46,23 @@ dogs_df1 =
     day = as.factor(day)) %>%
   select(-c(raisinlbs:notes))
 ```
+
+The raw dataset had some organization issues, so some steps were taken to tidy and clean the data.
+
+One of the issues was that the date formatting in the imported raw data was incorrect. 
+So, I used the 'col_types' function to specify which types of data each column in the imported dataset should have.
+Another issue was that the columns were named as 'Weight (Lbs Oz)', '...2', '...3', '...4', '...5', and 'notes' in the imported raw dataset. 
+In order to fix this problem, I set the import range of the raw data excel sheet so that it excludes the first row in the raw dataset, and then renamed one of the columns to indicate 'notes', and used the 'clean_names()' function to clean the variable names.
+
+After the initial tidying of the data, I noticed that the weight entries for Raisin on 2018-10-22 did not have a space between the pounds entry and the ounce entry. So, I used the 'mutate' and 'recode' functions to create a spacing between these two entries. 
+Then, I used the 'separate' function to create separate columns for each weight entry per dog, which resulted in two columns per dog in the dataset.
+I then used the 'mutate' function to create a new column for each dog that combines the two weight data per dog to one weight data per dog.   
+
+After doing so, I produced the first tidy dataframe by using the 'select' function to leave out unnecessary columns, 
+such as 'std', 'notes', and all the two columns per dog. 
+The 'std' column was considered unnecessary because its mere purpose was to indicate the accuracy of the dedicated scale over time, and the consistent data in this column proved so. 
+The 'notes' column was also left out because the first tidy dataframe was intended not to include the notes. 
+
 
 ### (3) Produce the second tidy dataframe that contains only the notes and dates
 ```{r}
@@ -64,9 +89,8 @@ write_csv(dogs_df2, "./data/problem1_dataframe2.csv")
 ### (1) Identify the number of unique dates in the dataset
 ```{r}
 unique_days = 
-  dogs_raw %>%
-  drop_na(date) %>%
-  group_by(date) %>%
+  dogs_df1 %>%
+  group_by(year, month, day) %>%
   summarize(n_obs = n()) %>%
   nrow()
 ```
