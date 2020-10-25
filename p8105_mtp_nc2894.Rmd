@@ -49,7 +49,7 @@ dogs_df1 =
 One of the issues of the imported raw dataset was the incorrect date formatting. 
 So, I used 'col_types' to fix the issue.
 Additionally, the columns were named incorrectly in the imported raw dataset. 
-Thus, I set the import range of the raw data excel sheet to exclude the first row, and then renamed one column, and used 'clean_names()'.
+Thus, I set the import range of the raw data excel sheet to exclude the first row, and then renamed one of the columns, and used 'clean_names()'.
 Then, I used 'mutate' and 'recode' to fix errors in three of Raisin's weight entries.
 I then used 'separate' and 'mutate' to combine the two weight data into one weight data per dog.
 Finally, I produced the first tidy dataframe by using 'select' to leave out unnecessary columns. 
